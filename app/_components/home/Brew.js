@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap } from "@/app/_lib/gsap";
+import { gsap, stepSnap } from "@/app/_lib/gsap";
 import { BREW_STAGES } from "@/app/_lib/content";
 
 /*
@@ -30,6 +30,8 @@ export function Brew() {
           scrub: 1.2,
           pin: pinRef.current,
           anticipatePin: 1,
+          // One swipe per caption: resting, bloom, peak.
+          snap: stepSnap([0, 0.2, 0.52, 0.88, 1]),
         },
         defaults: { ease: "none" },
       });

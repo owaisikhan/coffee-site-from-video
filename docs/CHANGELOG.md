@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-25: one swipe, one step
+- Owner: slow scrolling on a phone made the video look laggy, a continuous scroll looked smooth; asked for one scroll to play through to the next section.
+- The three pinned sections now step-snap (`stepSnap()` in `app/_lib/gsap.js`): any scroll, even a few pixels, glides at an even pace to the next stop in that direction. Hero stops at each copy block (0, 0.36, 0.6, 1), brew at each caption, origins at each card. Scrolling up steps back.
+- Normal sections (menu, build, house, story, booking) scroll freely; they are taller than a phone screen and hold forms.
+- Off under prefers-reduced-motion.
+
 ## 2026-09-25: smoother hero on phones
 - Owner reported the phone hero was slow and laggy. Measured on an emulated mid-range phone (4x CPU throttle): normal 4G had 22 frames over 50ms; slow 4G never drew a scrubbed frame (the first loaded frame tried to draw the scroll position, which had not arrived).
 - Frames now load coarse to fine (every 16th, then 8th, 4th, 2nd, rest) and the nearest loaded frame is drawn, at most once per screen refresh.

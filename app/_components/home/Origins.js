@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap } from "@/app/_lib/gsap";
+import { gsap, stepSnap } from "@/app/_lib/gsap";
 import { ORIGINS } from "@/app/_lib/content";
 
 /* Pinned sideways scroll: the vertical distance equals the track's overflow width. */
@@ -13,6 +13,14 @@ export function Origins() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const distance = () => -(trackRef.current.scrollWidth - window.innerWidth);
+      // One swipe per card: the progress at which each card reaches the left edge.
+      const cardStops = () => {
+        const track = trackRef.current;
+        const total = Math.abs(distance()) || 1;
+        const pad = track.firstElementChild?.offsetLeft ?? 0;
+        const stops = [...track.children].map((card) => Math.min(1, (card.offsetLeft - pad) / total));
+        return [...new Set([0, ...stops, 1])].sort((a, b) => a - b);
+      };
       gsap.to(trackRef.current, {
         x: distance,
         ease: "none",
@@ -24,6 +32,7 @@ export function Origins() {
           pin: pinRef.current,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          snap: stepSnap(cardStops),
         },
       });
     }, triggerRef);

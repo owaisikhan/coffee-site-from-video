@@ -26,11 +26,16 @@
 ## Motion
 | Section | Trigger | Behaviour |
 |---|---|---|
-| Hero | pin, `+=600%`, scrub 0.4 | frame scrub, HUD readouts, four copy blocks by band, flash as the milk lands |
+| Hero | pin, `+=600%`, scrub 0.4, step snap at 0 / 0.36 / 0.6 / 1 | frame scrub, HUD readouts, four copy blocks by band, flash as the milk lands |
 | Menu | `top 75%` / `top 80%` | head and cards rise in; ADD TO ORDER flies the photo into the build preview |
 | Build | click | size letter bursts from the preview; add-ons fly into the total, which flashes |
 | House | `top 80%` | video starts, media slides in, copy and facts stagger |
 | Stats | `top 65%` | counters run 0 to N over 2.2s |
-| Brew | pin, `+=280%`, scrub 1.2 | thermometer 20 to 93°C, bean still fades into the pour, three captions |
-| Origins | pin, distance = track overflow, scrub 0.6 | cards travel sideways |
+| Brew | pin, `+=280%`, scrub 1.2, step snap per caption | thermometer 20 to 93°C, bean still fades into the pour, three captions |
+| Origins | pin, distance = track overflow, scrub 0.6, step snap per card | cards travel sideways |
 | Story, Visit | `top 85%` | head and cards rise in |
+
+## Step snapping
+Pinned, scroll-driven sections use `stepSnap(stops)` from `app/_lib/gsap.js`: one swipe moves to the next stop and the
+media plays through at an even pace. Always include 0 and 1 in the stops so the reader can leave the section. Do not
+snap ordinary content sections; they hold forms and are taller than a phone screen.

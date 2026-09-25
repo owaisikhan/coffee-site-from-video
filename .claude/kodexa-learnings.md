@@ -21,6 +21,7 @@ for the rules.
 | L-003 | 2026-09-25 | gotcha | Portrait footage on desktop: viewfinder panel over a tiny-canvas blur, not a stretched cover | type: 3d-website | superseded by L-005 |
 | L-004 | 2026-09-25 | gotcha | GSAP `from()` on an element already at opacity 0 tweens 0 to 0 | all | logged |
 | L-006 | 2026-09-25 | gotcha | Frame-scrub heroes on phones: coarse-to-fine loading, nearest-frame draw, no canvas realloc on address-bar resize | type: 3d-website | ready |
+| L-008 | 2026-09-25 | rule | Scroll-scrubbed media steps: one swipe glides to the next stop | type: 3d-website | ready |
 | L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
@@ -80,3 +81,11 @@ for the rules.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, "Gotchas"
 - **Status:** logged
+
+### L-008 · 2026-09-25 · strong · rule
+- **Said / saw:** "slow scrolling on phone makes the video and site look laggy, but if i scroll continues then it looks smooth, can we make the video scroll to the next section in a continuous way on one scroll and then on the other section on another scroll?"
+- **Context:** Kodexa House pinned hero, brew thermometer and origins strip, after the loading fixes in L-006
+- **Lesson:** Pinned, scroll-scrubbed sections step-snap: any scroll commits to the next stop in that direction and ScrollTrigger glides there at an even pace (duration 0.7 to 1.6s, power1.inOut, inertia off), so the footage plays continuously however slowly the thumb moved. Stops sit on the copy blocks or cards; always include 0 and 1. Use a snapTo function that stays put when already on a stop, or the load-time refresh snap jumps the page forward. Leave normal content sections free-scrolling, and switch snapping off under reduced motion. Test with CDP Input.dispatchTouchEvent swipes and read the progress after the glide.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 4 "Scroll"
+- **Status:** ready

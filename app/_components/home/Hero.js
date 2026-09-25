@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap, ScrollTrigger, prefersReducedMotion } from "@/app/_lib/gsap";
+import { gsap, ScrollTrigger, prefersReducedMotion, stepSnap } from "@/app/_lib/gsap";
 import { HERO_BEATS, SHOT_SPECS } from "@/app/_lib/content";
 
 /*
@@ -187,6 +187,8 @@ export function Hero() {
         scrub: 0.4,
         pin: pinRef.current,
         anticipatePin: 1,
+        // One swipe plays the footage through to the next copy block.
+        snap: stepSnap([0, 0.36, 0.6, 1]),
         onUpdate: (self) => {
           const t = self.progress;
           const i = Math.round(t * (total - 1));
