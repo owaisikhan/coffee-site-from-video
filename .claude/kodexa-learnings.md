@@ -23,6 +23,7 @@ for the rules.
 | L-006 | 2026-09-25 | gotcha | Frame-scrub heroes on phones: coarse-to-fine loading, nearest-frame draw, no canvas realloc on address-bar resize | type: 3d-website | ready |
 | L-008 | 2026-09-25 | rule | Scroll-scrubbed media steps: one swipe glides to the next stop | type: 3d-website | superseded by L-009 |
 | L-009 | 2026-09-25 | rule | Pinned media sections take over scrolling: automatic step per swipe even with the finger down | type: 3d-website | ready |
+| L-010 | 2026-09-25 | correction | Stops must rest on a clear frame; glide 1.2 to 2.6s, sine ease | type: 3d-website | ready |
 | L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
@@ -97,4 +98,12 @@ for the rules.
 - **Lesson:** The owner wants scroll-driven sections to play like a slideshow: inside a pinned section, block native scroll with GSAP Observer (type "wheel,touch", preventDefault) and turn each gesture into one automatic glide to the next stop. One step per touch gesture (reset on press); wheels need a pause of about 180ms between flicks so trackpad inertia does not double-step. Past the last stop, glide to the next section's top; before the first, above the section. Enable on the ScrollTrigger's onToggle and onRefresh, never leave it on outside the section (it blocks taps). Settle arrivals on the edge stop only after a frame and only if still active, or menu-link jumps get pulled back into the section. Keep a snap as a fallback for keyboard and scrollbar, and turn all of it off under reduced motion. Test held swipes with CDP touch events (drag, hold 2s, release) and every menu link.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, section 4 "Scroll"
+- **Status:** ready
+
+### L-010 · 2026-09-25 · medium · correction
+- **Said / saw:** "make the glide a bit slower and smooth and make sure when a section appear on one swipe down end, there is a proper image behind the content" (screenshot: copy over the whip-pan blur)
+- **Context:** Kodexa House hero and brew after L-009
+- **Lesson:** Choose stops by looking at the frames, not by even spacing: every stop rests on a clear, recognisable shot, never a transition blur, a dark frame or a loop point, and the copy block's fade band is centred on that stop. A section with several captions gets one photo per caption. The owner's preferred glide is 1.2 to 2.6s per step with a sine in-out ease. Screenshot every stop at 360px before shipping.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 4 "Scroll" and section 6 "Content"
 - **Status:** ready

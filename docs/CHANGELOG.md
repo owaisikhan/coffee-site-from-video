@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-25: slower glide, a real image at every stop
+- Owner (phone screenshot of "Double Ristretto" over an orange blur): slower, smoother glide, and a proper image behind the content at each stop.
+- Glides now take 1.2 to 2.6s with a sine ease (was 0.7 to 1.8s).
+- Hero stops moved onto clear shots: drop (frame 1), bean (73), double pour (132), latte on the bar (180). The old third stop sat on the whip-pan blur and the last on the loop's dark closing frames. Copy blocks follow the stops.
+- Brew has one photo per caption (bean, tamp, pour) with crossfades and a lighter, directional overlay; the first caption shows on arrival; stops at each caption; 93°C at the peak stop.
+- The HUD's camera spec hides below 380px wide, where it wrapped into the timecode.
+
 ## 2026-09-25: fully automatic steps
 - Owner: "make it fully automatic even while finger is down".
 - Pinned sections now take over scrolling with GSAP Observer (`createStepper()` in `app/_lib/gsap.js`): inside the hero, brew and origins, native scroll is blocked and each swipe or wheel flick starts an automatic glide to the next stop, with the finger still down. One step per touch; a wheel needs a short pause between flicks so trackpad inertia does not double-step. Past the last stop a swipe carries the reader to the next section's top; before the first stop, back above the section.

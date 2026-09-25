@@ -176,7 +176,10 @@ export function Hero() {
       if (el) el.style.opacity = String(v);
     };
 
-    const HERO_STOPS = [0, 0.36, 0.6, 1];
+    // Each stop rests on a clear shot: the drop (frame 1), the bean (73), the
+    // double pour (132) and the latte on the bar (180). Past the last stop a
+    // swipe leaves the hero, playing the dark closing frames on the way.
+    const HERO_STOPS = [0, 72 / 199, 131 / 199, 179 / 199];
     const stepper = createStepper(HERO_STOPS);
     const gctx = gsap.context(() => {
       if (!prefersReducedMotion()) {
@@ -208,9 +211,9 @@ export function Hero() {
           if (flashRef.current) flashRef.current.style.opacity = String(band(t, 0.745, 0.006, 0.06) * 0.7);
           if (tempRef.current) tempRef.current.textContent = `${Math.round(Math.min(1, t / 0.62) * 93)}°C`;
           setOpacity(introRef.current, band(t, 0, 0.05, 0.05));
-          setOpacity(beanRef.current, band(t, 0.36, 0.04, 0.05));
-          setOpacity(shotRef.current, band(t, 0.6, 0.06, 0.06));
-          setOpacity(cupRef.current, band(t, 0.95, 0.06, 0.06));
+          setOpacity(beanRef.current, band(t, HERO_STOPS[1], 0.04, 0.05));
+          setOpacity(shotRef.current, band(t, HERO_STOPS[2], 0.05, 0.06));
+          setOpacity(cupRef.current, band(t, HERO_STOPS[3], 0.05, 0.06));
         },
       });
     }, triggerRef);
@@ -297,7 +300,7 @@ export function Hero() {
               </span>
             </span>
             <span className="hidden md:inline">KODEXA HOUSE // SINGLE SHOT POUR</span>
-            <span className="tabular">4K · 30FPS · F1.8 · 1/60</span>
+            <span className="tabular max-[379px]:hidden">4K · 30FPS · F1.8 · 1/60</span>
           </div>
 
           <span className="absolute left-5 top-24 h-9 w-9 border-l-2 border-t-2 border-white/60 md:left-8" />
@@ -424,7 +427,7 @@ export function Hero() {
         </div>
 
         <div ref={shotRef} className={`${copyBox} opacity-0 md:max-w-md`}>
-          <p className="font-mono text-[10px] tracking-[0.3em] text-muted md:text-[11px]">04 // THE SHOT</p>
+          <p className="font-mono text-[10px] tracking-[0.3em] text-muted md:text-[11px]">05 // THE SHOT</p>
           <h2 className="mt-2 font-display text-4xl font-semibold leading-none tracking-tight text-text md:mt-3 md:text-6xl">
             DOUBLE
             <br />

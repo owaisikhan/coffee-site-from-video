@@ -37,9 +37,9 @@ export function stepSnap(stops) {
       if (dir > 0) return points.find((p) => p >= value) ?? 1;
       return [...points].reverse().find((p) => p <= value) ?? 0;
     },
-    duration: { min: 0.7, max: 1.6 },
+    duration: { min: 1.2, max: 2.6 },
     delay: 0.06,
-    ease: "power1.inOut",
+    ease: "sine.inOut",
     inertia: false,
   };
 }
@@ -67,7 +67,7 @@ export function createStepper(stops) {
     gsap.to(window, {
       scrollTo: { y, autoKill: false },
       duration,
-      ease: "power1.inOut",
+      ease: "sine.inOut",
       overwrite: true,
       onComplete: () => {
         animating = false;
@@ -87,10 +87,10 @@ export function createStepper(stops) {
       if (dir < 0 && st.start <= 1) return;
       observer.disable();
       const y = dir > 0 ? st.end + window.innerHeight : Math.max(0, st.start - window.innerHeight);
-      glide(y, 1);
+      glide(y, 1.4);
       return;
     }
-    glide(yAt(target), gsap.utils.clamp(0.7, 1.8, Math.abs(target - p) * 3.4));
+    glide(yAt(target), gsap.utils.clamp(1.2, 2.6, Math.abs(target - p) * 5.5));
   };
 
   const observer = Observer.create({
@@ -142,13 +142,13 @@ export function createStepper(stops) {
         onEnter: (self) => {
           st = self;
           requestAnimationFrame(() => {
-            if (self.isActive && !animating) glide(self.start, 0.5);
+            if (self.isActive && !animating) glide(self.start, 0.8);
           });
         },
         onEnterBack: (self) => {
           st = self;
           requestAnimationFrame(() => {
-            if (self.isActive && !animating) glide(self.end, 0.5);
+            if (self.isActive && !animating) glide(self.end, 0.8);
           });
         },
       };

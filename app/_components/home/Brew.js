@@ -7,7 +7,7 @@ import { BREW_STAGES } from "@/app/_lib/content";
 /*
  * Pinned for 280% of the viewport: one scrubbed timeline raises the
  * thermometer from 20 to 93°C, warms its colour from crema to deep amber,
- * crossfades the resting bean into the pour, and swaps three captions.
+ * crossfades bean, tamp and pour photos, and swaps three captions.
  */
 export function Brew() {
   const triggerRef = useRef(null);
@@ -15,12 +15,17 @@ export function Brew() {
   const tempRef = useRef(null);
   const fillRef = useRef(null);
   const glowRef = useRef(null);
-  const beanRef = useRef(null);
-  const pourRef = useRef(null);
+  const images = useRef([]);
   const stages = useRef([]);
 
   useEffect(() => {
-    const BREW_STOPS = [0, 0.2, 0.52, 0.88, 1];
+    // One stop per caption, each resting on its own photo: resting (bean),
+    // bloom (tamp), peak (pour). Past the last stop a swipe leaves the section.
+    const BREW_STOPS = [0, 0.56, 0.9];
+    const ss = (a, b, t) => {
+      const x = Math.min(1, Math.max(0, (t - a) / (b - a)));
+      return x * x * (3 - 2 * x);
+    };
     const stepper = createStepper(BREW_STOPS);
     const ctx = gsap.context(() => {
       const state = { t: 0 };
@@ -44,7 +49,8 @@ export function Brew() {
           t: 1,
           duration: 1,
           onUpdate: () => {
-            const t = state.t;
+            // The heat peaks at the last caption's stop.
+            const t = Math.min(1, state.t / 0.9);
             if (tempRef.current) tempRef.current.textContent = String(Math.round(20 + 73 * t));
             if (fillRef.current) {
               const r = Math.round(212 + 20 * t);
@@ -55,19 +61,24 @@ export function Brew() {
               fillRef.current.style.boxShadow = `0 0 ${20 + t * 60}px rgba(${r},${g},${b},${0.3 + t * 0.5})`;
             }
             if (glowRef.current) glowRef.current.style.opacity = String(t * 0.8);
-            if (beanRef.current) beanRef.current.style.opacity = String(Math.max(0, 0.55 * (1 - t * 1.6)));
-            if (pourRef.current) pourRef.current.style.opacity = String(Math.min(0.6, Math.max(0, ((t - 0.25) / 0.75) * 0.6)));
+            const p = state.t;
+            const fadeA = ss(0.28, 0.42, p);
+            const fadeB = ss(0.64, 0.78, p);
+            const [bean, tamp, pour] = images.current;
+            if (bean) bean.style.opacity = String(1 - fadeA);
+            if (tamp) tamp.style.opacity = String(fadeA * (1 - fadeB));
+            if (pour) pour.style.opacity = String(fadeB);
           },
         },
         0,
       );
-      // Stages 2 and 3 are set to fully visible first, so the "from" tweens animate from 0 up to 1.
+      // Caption 1 is visible on arrival; 2 and 3 are set visible first so their
+      // "from" tweens animate from 0 up to 1.
       gsap.set([stages.current[1], stages.current[2]], { opacity: 1 });
-      tl.from(stages.current[0], { opacity: 0, y: 30, duration: 0.12, ease: "power2.out" }, 0)
-        .to(stages.current[0], { opacity: 0, y: -30, duration: 0.12, ease: "power2.in" }, 0.3)
-        .from(stages.current[1], { opacity: 0, y: 30, duration: 0.15, ease: "power2.out" }, 0.35)
-        .to(stages.current[1], { opacity: 0, y: -30, duration: 0.12, ease: "power2.in" }, 0.62)
-        .from(stages.current[2], { opacity: 0, y: 30, duration: 0.15, ease: "power2.out" }, 0.68);
+      tl.to(stages.current[0], { opacity: 0, y: -30, duration: 0.12, ease: "power2.in" }, 0.28)
+        .from(stages.current[1], { opacity: 0, y: 30, duration: 0.12, ease: "power2.out" }, 0.38)
+        .to(stages.current[1], { opacity: 0, y: -30, duration: 0.12, ease: "power2.in" }, 0.64)
+        .from(stages.current[2], { opacity: 0, y: 30, duration: 0.12, ease: "power2.out" }, 0.74);
     }, triggerRef);
     return () => {
       stepper.kill();
@@ -78,11 +89,23 @@ export function Brew() {
   return (
     <div ref={triggerRef} id="brew" className="scroll-mt-0">
       <div ref={pinRef} className="relative flex h-svh w-full items-center overflow-hidden bg-bg">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={beanRef} src="/stills/bean.webp" alt="" aria-hidden="true" loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={pourRef} src="/stills/pour.webp" alt="" aria-hidden="true" loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-0" />
-        <div className="pointer-events-none absolute inset-0 bg-bg/70" />
+        {["/stills/bean.webp", "/stills/tamp.webp", "/stills/pour.webp"].map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={src}
+            ref={(el) => {
+              images.current[i] = el;
+            }}
+            src={src}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${i === 0 ? "opacity-100" : "opacity-0"}`}
+          />
+        ))}
+        {/* Dark on the left for the captions, lighter on the right so the photo shows. */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bg/90 via-bg/60 to-bg/40" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/60 via-transparent to-bg/70" />
         <div
           ref={glowRef}
           className="pointer-events-none absolute inset-0 opacity-0 bg-[radial-gradient(ellipse_70%_60%_at_70%_80%,rgba(232,120,40,0.3)_0%,transparent_70%)]"
