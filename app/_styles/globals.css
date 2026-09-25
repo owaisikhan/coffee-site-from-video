@@ -89,6 +89,12 @@
   .gate-bounce {
     animation: gate-bounce 1.5s ease-in-out infinite;
   }
+  /* A slow camera breath on the hero footage, so a resting stop never looks paused. */
+  .hero-drift {
+    transform-origin: 60% 50%;
+    animation: hero-drift 9s ease-in-out infinite alternate;
+    will-change: transform;
+  }
   .text-glow-accent {
     text-shadow:
       0 0 60px #d4924a80,
@@ -122,6 +128,14 @@
     transform: translateY(100vh);
   }
 }
+@keyframes hero-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06) translateX(-1%);
+  }
+}
 @keyframes gate-bounce {
   0%,
   to {
@@ -150,7 +164,8 @@ body::after {
   .hud-blink,
   .rec-blink,
   .hud-scan,
-  .gate-bounce {
+  .gate-bounce,
+  .hero-drift {
     animation: none;
   }
 }

@@ -24,6 +24,7 @@ for the rules.
 | L-008 | 2026-09-25 | rule | Scroll-scrubbed media steps: one swipe glides to the next stop | type: 3d-website | superseded by L-009 |
 | L-009 | 2026-09-25 | rule | Pinned media sections take over scrolling: automatic step per swipe even with the finger down | type: 3d-website | ready |
 | L-010 | 2026-09-25 | correction | Stops must rest on a clear frame; glide 1.2 to 2.6s, sine ease | type: 3d-website | ready |
+| L-011 | 2026-09-25 | correction | A stop frame must be a resting shot; add a slow drift so stops never look paused | type: 3d-website | ready |
 | L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
@@ -106,4 +107,12 @@ for the rules.
 - **Lesson:** Choose stops by looking at the frames, not by even spacing: every stop rests on a clear, recognisable shot, never a transition blur, a dark frame or a loop point, and the copy block's fade band is centred on that stop. A section with several captions gets one photo per caption. The owner's preferred glide is 1.2 to 2.6s per step with a sine in-out ease. Screenshot every stop at 360px before shipping.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, section 4 "Scroll" and section 6 "Content"
+- **Status:** ready
+
+### L-011 · 2026-09-25 · medium · correction
+- **Said / saw:** "this last frame stop does not look good, it looks like someone paused in betwen" (the cup caught mid-lift)
+- **Context:** Kodexa House hero, stop 4, after L-010
+- **Lesson:** A clear frame is not enough: a stop must sit inside a steady stretch of footage (subject at rest, camera slow), found by tiling the frames around it. Keep a slow scale drift (about 9s, 1 to 1.06, alternate) on the canvas so a resting stop still moves, load stop frames first so the exact frame is ready, and end the scrub before any fade-to-black or loop point in the footage.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 6 "Content"
 - **Status:** ready

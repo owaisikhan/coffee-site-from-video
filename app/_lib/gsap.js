@@ -124,6 +124,13 @@ export function createStepper(stops) {
     return y >= self.start - 2 && y <= self.end + 2;
   };
 
+  // ScrollTrigger is not "active" when resting exactly on its start or end
+  // pixel (a menu link lands there), so also switch on from a plain scroll check.
+  const onScroll = () => {
+    if (st && !observer.isEnabled && !animating && inside(st)) observer.enable();
+  };
+  if (!prefersReducedMotion()) window.addEventListener("scroll", onScroll, { passive: true });
+
   const callbacks = prefersReducedMotion()
     ? {}
     : {
@@ -155,6 +162,9 @@ export function createStepper(stops) {
 
   return {
     callbacks,
-    kill: () => observer.kill(),
+    kill: () => {
+      window.removeEventListener("scroll", onScroll);
+      observer.kill();
+    },
   };
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-25: the last stop no longer looks paused
+- Owner (phone screenshot of the cup stop): "it looks like someone paused in between".
+- The cup stop moved from frame 180 (the cup mid-lift, blurred) to frame 168 (the latte resting on the bar during a slow push).
+- The scrub now ends at frame 186; the footage goes dark and loops back to the first drop after that, which flashed on the way out.
+- The hero canvas has a slow 9s camera drift (scale 1 to 1.06), so a resting stop still breathes. Off under reduced motion.
+- Stop frames load first, so a glide always lands on its exact frame rather than a nearby loaded one.
+- Steppers also switch on from a plain scroll check, because ScrollTrigger is not active on its exact start pixel (the first swipe after a menu link was being spent on settling).
+- Origins has no extra end stop; the swipe after card 6 leaves the section.
+
 ## 2026-09-25: slower glide, a real image at every stop
 - Owner (phone screenshot of "Double Ristretto" over an orange blur): slower, smoother glide, and a proper image behind the content at each stop.
 - Glides now take 1.2 to 2.6s with a sine ease (was 0.7 to 1.8s).

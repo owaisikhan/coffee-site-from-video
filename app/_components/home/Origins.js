@@ -20,7 +20,8 @@ export function Origins() {
         const total = Math.abs(distance()) || 1;
         const pad = track.firstElementChild?.offsetLeft ?? 0;
         const stops = [...track.children].map((card) => Math.min(1, (card.offsetLeft - pad) / total));
-        return [...new Set([0, ...stops, 1])].sort((a, b) => a - b);
+        // No stop at 1: past the last card the next swipe leaves the section.
+        return [...new Set([0, ...stops])].sort((a, b) => a - b);
       };
       stepper = createStepper(cardStops);
       gsap.to(trackRef.current, {

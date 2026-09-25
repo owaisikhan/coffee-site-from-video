@@ -45,6 +45,14 @@ export function Hero() {
   useEffect(() => {
     const isPhone = window.matchMedia("(max-width: 768px)").matches;
     const total = 200;
+    // The footage goes dark and loops back to the first drop after frame 186,
+    // so the scrub ends there.
+    const LAST = 185;
+    // Each stop rests on a steady, clear shot: the drop (frame 1), the bean (73),
+    // the double pour (132) and the latte resting on the bar (168). Past the
+    // last stop a swipe leaves the hero.
+    const STOP_FRAMES = [0, 72, 131, 167];
+    const HERO_STOPS = STOP_FRAMES.map((f) => f / LAST);
     const dir = isPhone ? "pour-mobile" : "pour";
     const src = (i) => `/frames/${dir}/f_${String(i + 1).padStart(3, "0")}.webp`;
 
@@ -109,8 +117,9 @@ export function Hero() {
 
     // Coarse to fine: frame 0, then every 16th, 8th, 4th, 2nd, then the rest,
     // so every part of the scroll has a nearby frame early on.
-    const order = [];
-    const seen = new Set();
+    // The stop frames load first, so a glide always lands on its exact frame.
+    const order = [...STOP_FRAMES];
+    const seen = new Set(STOP_FRAMES);
     for (const stepSize of [total, 16, 8, 4, 2, 1]) {
       for (let i = 0; i < total; i += stepSize) {
         if (!seen.has(i)) {
@@ -176,10 +185,6 @@ export function Hero() {
       if (el) el.style.opacity = String(v);
     };
 
-    // Each stop rests on a clear shot: the drop (frame 1), the bean (73), the
-    // double pour (132) and the latte on the bar (180). Past the last stop a
-    // swipe leaves the hero, playing the dark closing frames on the way.
-    const HERO_STOPS = [0, 72 / 199, 131 / 199, 179 / 199];
     const stepper = createStepper(HERO_STOPS);
     const gctx = gsap.context(() => {
       if (!prefersReducedMotion()) {
@@ -197,10 +202,10 @@ export function Hero() {
         ...stepper.callbacks,
         onUpdate: (self) => {
           const t = self.progress;
-          const i = Math.round(t * (total - 1));
+          const i = Math.round(t * LAST);
           wanted = i;
           requestRender();
-          const beat = beatIndex(i / (total - 1));
+          const beat = beatIndex(t);
           if (frameRef.current) frameRef.current.textContent = String(i).padStart(3, "0");
           if (phaseRef.current) phaseRef.current.textContent = HERO_BEATS[beat].label;
           if (sectionRef.current) sectionRef.current.textContent = String(beat + 1).padStart(2, "0");
@@ -277,7 +282,7 @@ export function Hero() {
   return (
     <div ref={triggerRef} id="top">
       <div ref={pinRef} className="relative h-svh w-full overflow-hidden bg-black">
-        <canvas ref={canvasRef} className="absolute left-0 top-0" aria-hidden="true" />
+        <canvas ref={canvasRef} className="hero-drift absolute left-0 top-0" aria-hidden="true" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black from-0% via-black/40 via-30% to-transparent to-55%" />
         <div className="pointer-events-none absolute inset-0 bg-black/30 md:hidden" />
         <div className="cam-vignette pointer-events-none absolute inset-0 z-[5]" />
