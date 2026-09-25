@@ -6,9 +6,11 @@ import { HERO_BEATS, SHOT_SPECS } from "@/app/_lib/content";
 
 /*
  * Pinned hero: 600% of scroll scrubs the owner's pour video as a WebP frame
- * sequence on a canvas, filling the screen. Phones load 100 portrait frames;
- * desktops load 200 frames cut to the middle 16:9 band of the portrait
- * footage and upscaled to 1920x1080 (see scripts/make-frames.mjs).
+ * sequence on a canvas, filling the screen. Phones load 200 portrait frames;
+ * desktops load 200 frames cut to a 16:9 band that follows the subject,
+ * upscaled to 1920x1080 (see scripts/make-frames.mjs). Frames load coarse to
+ * fine and the nearest loaded frame is drawn, so a slow network gives a
+ * coarser scrub rather than a frozen picture.
  * Every HUD readout and copy block follows the same scroll progress.
  */
 
@@ -39,12 +41,10 @@ export function Hero() {
   const timecodeRef = useRef(null);
   const [gate, setGate] = useState("scroll");
   const [gateVisible, setGateVisible] = useState(false);
-  const frameTotalRef = useRef(null);
 
   useEffect(() => {
     const isPhone = window.matchMedia("(max-width: 768px)").matches;
-    const total = isPhone ? 100 : 200;
-    if (frameTotalRef.current) frameTotalRef.current.textContent = ` / ${total}`;
+    const total = 200;
     const dir = isPhone ? "pour-mobile" : "pour";
     const src = (i) => `/frames/${dir}/f_${String(i + 1).padStart(3, "0")}.webp`;
 
@@ -54,97 +54,123 @@ export function Hero() {
     const frames = Array(total).fill(null);
     const loading = new Set();
     let drawn = -1;
-    let wanted = -1;
-    let anyLoaded = false;
+    let wanted = 0;
+    let posterShown = false;
+    let raf = 0;
 
     // Cover-fit on every screen: phones get the portrait frames, desktops a 16:9 crop.
     const paint = (img) => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const w = cssW;
+      const h = cssH;
       const s = Math.max(w / img.width, h / img.height);
       const dw = img.width * s;
       const dh = img.height * s;
       ctx.imageSmoothingQuality = "high";
-      ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
     };
 
-    const draw = (i) => {
-      if (!frames[i]) return;
+    // The closest frame that has arrived, so a slow network shows a coarser
+    // scrub instead of a frozen picture.
+    const nearestLoaded = (i) => {
+      for (let d = 0; d < total; d++) {
+        if (frames[i - d]) return i - d;
+        if (frames[i + d]) return i + d;
+      }
+      return -1;
+    };
+
+    // At most one draw per screen refresh, however many scroll events arrive.
+    const render = () => {
+      raf = 0;
+      const i = nearestLoaded(wanted);
+      if (i < 0 || i === drawn) return;
       drawn = i;
+      canvas.dataset.frame = String(i);
       paint(frames[i]);
     };
+    const requestRender = () => {
+      if (!raf) raf = requestAnimationFrame(render);
+    };
 
-    const load = (i) =>
-      fetch(src(i))
+    const load = (i) => {
+      if (frames[i] || loading.has(i)) return Promise.resolve();
+      loading.add(i);
+      return fetch(src(i))
         .then((r) => r.blob())
-        .then((b) => createImageBitmap(b));
-
-    const show = (i) => {
-      wanted = i;
-      if (i === drawn) return;
-      if (frames[i]) {
-        draw(i);
-        return;
-      }
-      if (loading.has(i)) return;
-      loading.add(i);
-      load(i)
+        .then((b) => createImageBitmap(b))
         .then((bmp) => {
           frames[i] = bmp;
-          loading.delete(i);
-          anyLoaded = true;
-          if (wanted === i) draw(i);
+          // A newly arrived frame may be closer to where the reader is.
+          if (Math.abs(i - wanted) < Math.abs(drawn - wanted) || drawn < 0) requestRender();
         })
-        .catch(() => loading.delete(i));
+        .catch(() => {})
+        .finally(() => loading.delete(i));
     };
 
-    // Preload in order with a fixed pool of parallel requests.
-    const workers = isPhone ? 8 : 16;
-    let next = 0;
+    // Coarse to fine: frame 0, then every 16th, 8th, 4th, 2nd, then the rest,
+    // so every part of the scroll has a nearby frame early on.
+    const order = [];
+    const seen = new Set();
+    for (const stepSize of [total, 16, 8, 4, 2, 1]) {
+      for (let i = 0; i < total; i += stepSize) {
+        if (!seen.has(i)) {
+          seen.add(i);
+          order.push(i);
+        }
+      }
+    }
+    const workers = isPhone ? 6 : 12;
+    let cursor = 0;
     const pump = () => {
-      const i = next++;
-      if (i >= total) return;
-      if (frames[i] || loading.has(i)) {
-        pump();
-        return;
-      }
-      loading.add(i);
-      load(i)
-        .then((bmp) => {
-          frames[i] = bmp;
-          loading.delete(i);
-          if (!anyLoaded) {
-            anyLoaded = true;
-            draw(Math.max(0, wanted));
-          }
-        })
-        .catch(() => loading.delete(i))
-        .finally(pump);
+      if (cursor >= order.length) return;
+      load(order[cursor++]).finally(pump);
     };
-    for (let k = 0; k < Math.min(workers, total); k++) pump();
+    for (let k = 0; k < workers; k++) pump();
 
     // A plain <img> of frame 0 paints before the bitmap pipeline is ready.
     const poster = new Image();
     poster.onload = () => {
-      if (!anyLoaded) paint(poster);
+      if (drawn < 0) {
+        posterShown = true;
+        paint(poster);
+      }
     };
     poster.src = src(0);
 
+    // Size the canvas to the screen. Phones fire resize whenever the address
+    // bar slides in or out; reallocating the canvas then is expensive and
+    // pointless, so only a width change or a big height change resizes it.
+    let cssW = 0;
+    let cssH = 0;
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (w === cssW && Math.abs(h - cssH) < 160) return;
+      // Phone frames are 478px wide, so more than 1.25x density adds cost, not detail.
+      const dpr = Math.min(window.devicePixelRatio || 1, isPhone ? 1.25 : 1.5);
+      cssW = w;
+      cssH = Math.max(h, isPhone ? window.screen.height : h);
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const current = drawn < 0 ? 0 : drawn;
       drawn = -1;
-      show(current);
-      if (!anyLoaded && poster.complete && poster.naturalWidth) paint(poster);
+      if (frames.some(Boolean)) requestRender();
+      else if (posterShown) paint(poster);
     };
     resize();
     window.addEventListener("resize", resize);
+
+    // Marker positions are transforms, so moving them never triggers layout.
+    let barW = 0;
+    let railH = 0;
+    const measure = () => {
+      barW = barRef.current?.offsetWidth ?? 0;
+      railH = railDotRef.current?.parentElement?.offsetHeight ?? 0;
+    };
+    measure();
+    window.addEventListener("resize", measure);
 
     const setOpacity = (el, v) => {
       if (el) el.style.opacity = String(v);
@@ -164,14 +190,15 @@ export function Hero() {
         onUpdate: (self) => {
           const t = self.progress;
           const i = Math.round(t * (total - 1));
-          show(i);
+          wanted = i;
+          requestRender();
           const beat = beatIndex(i / (total - 1));
           if (frameRef.current) frameRef.current.textContent = String(i).padStart(3, "0");
           if (phaseRef.current) phaseRef.current.textContent = HERO_BEATS[beat].label;
           if (sectionRef.current) sectionRef.current.textContent = String(beat + 1).padStart(2, "0");
           if (barRef.current) barRef.current.style.transform = `scaleX(${t})`;
-          if (markerRef.current) markerRef.current.style.left = `${t * 100}%`;
-          if (railDotRef.current) railDotRef.current.style.top = `${t * 100}%`;
+          if (markerRef.current) markerRef.current.style.transform = `translate(${t * barW}px, 50%) translateX(-50%) rotate(45deg)`;
+          if (railDotRef.current) railDotRef.current.style.transform = `translate(-50%, ${t * railH}px) translateY(-50%)`;
           // A warm flash as the milk hits the cup.
           if (flashRef.current) flashRef.current.style.opacity = String(band(t, 0.745, 0.006, 0.06) * 0.7);
           if (tempRef.current) tempRef.current.textContent = `${Math.round(Math.min(1, t / 0.62) * 93)}°C`;
@@ -185,6 +212,8 @@ export function Hero() {
 
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", measure);
+      if (raf) cancelAnimationFrame(raf);
       gctx.revert();
       frames.forEach((f) => f?.close());
     };
@@ -208,19 +237,30 @@ export function Hero() {
     };
   }, [gate]);
 
-  // 30fps timecode, matching the footage.
+  // 30fps timecode, matching the footage. It only ticks while the hero is on screen.
   useEffect(() => {
     let f = 0;
-    const id = window.setInterval(() => {
+    let id = 0;
+    const p = (n) => String(n).padStart(2, "0");
+    const tick = () => {
       f = (f + 1) % (30 * 60 * 60 * 24);
-      const p = (n) => String(n).padStart(2, "0");
       const ff = f % 30;
       const ss = Math.floor(f / 30) % 60;
       const mm = Math.floor(f / 1800) % 60;
       const hh = Math.floor(f / 108000) % 24;
       if (timecodeRef.current) timecodeRef.current.textContent = `${p(hh)}:${p(mm)}:${p(ss)}:${p(ff)}`;
-    }, 1000 / 30);
-    return () => window.clearInterval(id);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      window.clearInterval(id);
+      if (entry.isIntersecting) id = window.setInterval(tick, 1000 / 30);
+    });
+    // Watch the outer wrapper: GSAP moves the pinned element into a spacer, which
+    // swallows the observer's first "now visible" report.
+    if (triggerRef.current) observer.observe(triggerRef.current);
+    return () => {
+      observer.disconnect();
+      window.clearInterval(id);
+    };
   }, []);
 
   const copyBox = "absolute left-6 top-1/2 z-20 max-w-[calc(100%-48px)] -translate-y-1/2 md:left-14";
@@ -228,14 +268,14 @@ export function Hero() {
   return (
     <div ref={triggerRef} id="top">
       <div ref={pinRef} className="relative h-svh w-full overflow-hidden bg-black">
-        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
+        <canvas ref={canvasRef} className="absolute left-0 top-0" aria-hidden="true" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black from-0% via-black/40 via-30% to-transparent to-55%" />
         <div className="pointer-events-none absolute inset-0 bg-black/30 md:hidden" />
         <div className="cam-vignette pointer-events-none absolute inset-0 z-[5]" />
         <div className="cam-scanlines pointer-events-none absolute inset-0 z-[5] opacity-60" />
         <div
           ref={flashRef}
-          className="pointer-events-none absolute inset-0 z-[6] opacity-0 mix-blend-screen bg-[radial-gradient(circle_at_66%_55%,rgba(245,225,195,0.9),rgba(212,146,74,0.35)_30%,transparent_60%)]"
+          className="pointer-events-none absolute inset-0 z-[6] opacity-0 bg-[radial-gradient(circle_at_66%_55%,rgba(245,225,195,0.55),rgba(212,146,74,0.2)_30%,transparent_60%)]"
         />
 
         <div className="pointer-events-none absolute inset-0 z-10 font-mono text-muted" aria-hidden="true">
@@ -269,7 +309,7 @@ export function Hero() {
             ))}
             <div
               ref={railDotRef}
-              className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)]"
+              className="absolute left-1/2 top-0 h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)] will-change-transform [transform:translate(-50%,0)_translateY(-50%)]"
             />
           </div>
 
@@ -321,9 +361,7 @@ export function Hero() {
                   <span ref={frameRef} className="tabular text-accent">
                     000
                   </span>
-                  <span ref={frameTotalRef} className="text-muted/60">
-                    {" / 200"}
-                  </span>
+                  <span className="text-muted/60"> / 200</span>
                 </span>
                 <span className="border border-white/15 bg-black/40 px-2.5 py-1 text-accent">◢ SCRUB ACTIVE</span>
               </span>
@@ -344,7 +382,7 @@ export function Hero() {
               />
               <div
                 ref={markerRef}
-                className="absolute bottom-px left-0 h-3 w-3 -translate-x-1/2 translate-y-1/2 rotate-45 bg-accent shadow-[0_0_18px_5px_var(--color-accent)]"
+                className="absolute bottom-px left-0 h-3 w-3 bg-accent shadow-[0_0_18px_5px_var(--color-accent)] will-change-transform [transform:translate(0,50%)_translateX(-50%)_rotate(45deg)]"
               />
             </div>
           </div>

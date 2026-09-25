@@ -16,6 +16,7 @@ thermometer, a pinned sideways origins strip, and a booking form.
   Regenerate frames with `npm run frames` (or `npm run frames -- raw/other.mp4`).
 - Menu items, prices, origins, WhatsApp number, hours and address are PLACEHOLDERS.
   They live in `app/_lib/content.js` and `app/_lib/siteConfig.js` and nowhere else.
+- Hero performance: frames load coarse to fine and the nearest loaded frame is drawn once per refresh. Keep per-scroll work to transforms, opacity and textContent; no left/top, no blend modes in the pinned hero.
 - Leads go to WhatsApp (`whatsappLink()` in siteConfig). There is no backend and no database.
 - Palette exceptions: none. The warm dark theme is chosen from the footage (shot on black with amber light), not a reflex.
 - No em or en dashes anywhere, including copy, comments and docs.

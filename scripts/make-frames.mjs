@@ -3,7 +3,7 @@
 //   npm run frames                       (uses raw/coffee-shop.mp4)
 //   npm run frames -- raw/new-video.mp4
 //
-// Writes 200 desktop frames to public/frames/pour and 100 phone frames to
+// Writes 200 desktop frames to public/frames/pour and 200 phone frames to
 // public/frames/pour-mobile, as WebP. Plain node, no @/ alias.
 //
 // The footage is portrait. Phones get the full frame. Desktops get the middle
@@ -77,8 +77,8 @@ for (let i = 0; i < DESKTOP; i++) {
   const pick = source[index];
   const name = `f_${String(i + 1).padStart(3, "0")}.webp`;
   run(["-i", join(work, pick), "-vf", wide(join(work, pick), index + 1), ...webp, join(outDesk, name)]);
-  if (i % 2 === 0) run(["-i", join(work, pick), ...webp, join(outPhone, `f_${String(i / 2 + 1).padStart(3, "0")}.webp`)]);
+  run(["-i", join(work, pick), ...webp, join(outPhone, name)]);
 }
 
 rmSync(work, { recursive: true, force: true });
-console.log(`Wrote ${DESKTOP} frames to ${outDesk} and ${DESKTOP / 2} to ${outPhone}.`);
+console.log(`Wrote ${DESKTOP} frames to ${outDesk} and ${DESKTOP} to ${outPhone}.`);

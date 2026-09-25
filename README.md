@@ -31,7 +31,7 @@ npm run check                       # terminal 2: overflow at 320-414px, order a
 ## How the hero works
 
 `app/_components/home/Hero.js` pins the first screen for six screen-heights of scrolling. Scroll progress picks one of
-200 WebP frames (100 on phones) from `public/frames/`, which is drawn on a canvas and fills the screen. The footage
+200 WebP frames from `public/frames/`, which is drawn on a canvas and fills the screen. The footage
 is portrait: phones get the full frames, desktops get a 16:9 crop upscaled to 1920x1080 that follows the subject
 (the `FOCUS` list in `scripts/make-frames.mjs`). The camera overlay (timecode, beat, frame counter, brew temperature, progress bar) and the four copy blocks all read
 the same progress value.

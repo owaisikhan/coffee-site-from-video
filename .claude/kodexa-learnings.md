@@ -20,6 +20,7 @@ for the rules.
 | L-002 | 2026-09-25 | gap | A site can be built from the owner's own video: frames, stills and a loop all come from one file | type: 3d-website | logged |
 | L-003 | 2026-09-25 | gotcha | Portrait footage on desktop: viewfinder panel over a tiny-canvas blur, not a stretched cover | type: 3d-website | superseded by L-005 |
 | L-004 | 2026-09-25 | gotcha | GSAP `from()` on an element already at opacity 0 tweens 0 to 0 | all | logged |
+| L-006 | 2026-09-25 | gotcha | Frame-scrub heroes on phones: coarse-to-fine loading, nearest-frame draw, no canvas realloc on address-bar resize | type: 3d-website | ready |
 | L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
@@ -63,3 +64,19 @@ for the rules.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, section 7 "Phones" or a new "Aspect ratio of the footage" section
 - **Status:** ready
+
+### L-006 · 2026-09-25 · medium · gotcha
+- **Said / saw:** "the video on mobile phone is slow and lags, why?"; measured slow 4G: 0 scrubbed frames drawn, 94% of the scroll far behind; normal 4G at 4x CPU throttle: 22 frames over 50ms
+- **Context:** Kodexa House hero, inherited loader from the burger clone (sequential preload, draw only the exact frame)
+- **Lesson:** For a canvas frame scrub: preload coarse to fine and always draw the nearest loaded frame (never wait for the exact one); draw in one rAF per refresh; move HUD markers with transforms, not left/top; no mix-blend-mode over the canvas; ignore height-only resizes under about 160px (the phone address bar) and size the canvas to screen height; cap phone density to the footage's resolution; give phones the same frame count as desktop (100 frames over 6 screens steps visibly). Measure with Playwright: CDP CPU throttle 4x plus Network.emulateNetworkConditions, compare canvas data-frame with the scroll position.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 5 "Performance budget"
+- **Status:** ready
+
+### L-007 · 2026-09-25 · low · gotcha
+- **Said / saw:** timecode never ticked after adding an IntersectionObserver on the pinned element
+- **Context:** GSAP pin moves the element into a pin-spacer as ScrollTrigger refreshes, and the observer's first entry reported not intersecting with no later update
+- **Lesson:** Observe the pin's outer trigger wrapper, never the pinned element itself.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, "Gotchas"
+- **Status:** logged
