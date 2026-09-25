@@ -21,7 +21,8 @@ for the rules.
 | L-003 | 2026-09-25 | gotcha | Portrait footage on desktop: viewfinder panel over a tiny-canvas blur, not a stretched cover | type: 3d-website | superseded by L-005 |
 | L-004 | 2026-09-25 | gotcha | GSAP `from()` on an element already at opacity 0 tweens 0 to 0 | all | logged |
 | L-006 | 2026-09-25 | gotcha | Frame-scrub heroes on phones: coarse-to-fine loading, nearest-frame draw, no canvas realloc on address-bar resize | type: 3d-website | ready |
-| L-008 | 2026-09-25 | rule | Scroll-scrubbed media steps: one swipe glides to the next stop | type: 3d-website | ready |
+| L-008 | 2026-09-25 | rule | Scroll-scrubbed media steps: one swipe glides to the next stop | type: 3d-website | superseded by L-009 |
+| L-009 | 2026-09-25 | rule | Pinned media sections take over scrolling: automatic step per swipe even with the finger down | type: 3d-website | ready |
 | L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
@@ -86,6 +87,14 @@ for the rules.
 - **Said / saw:** "slow scrolling on phone makes the video and site look laggy, but if i scroll continues then it looks smooth, can we make the video scroll to the next section in a continuous way on one scroll and then on the other section on another scroll?"
 - **Context:** Kodexa House pinned hero, brew thermometer and origins strip, after the loading fixes in L-006
 - **Lesson:** Pinned, scroll-scrubbed sections step-snap: any scroll commits to the next stop in that direction and ScrollTrigger glides there at an even pace (duration 0.7 to 1.6s, power1.inOut, inertia off), so the footage plays continuously however slowly the thumb moved. Stops sit on the copy blocks or cards; always include 0 and 1. Use a snapTo function that stays put when already on a stop, or the load-time refresh snap jumps the page forward. Leave normal content sections free-scrolling, and switch snapping off under reduced motion. Test with CDP Input.dispatchTouchEvent swipes and read the progress after the glide.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 4 "Scroll"
+- **Status:** superseded by L-009
+
+### L-009 · 2026-09-25 · strong · rule
+- **Said / saw:** "make it fully automatic even while finger is down" (after trying the release-to-snap version of L-008)
+- **Context:** Kodexa House hero, brew and origins pinned sections
+- **Lesson:** The owner wants scroll-driven sections to play like a slideshow: inside a pinned section, block native scroll with GSAP Observer (type "wheel,touch", preventDefault) and turn each gesture into one automatic glide to the next stop. One step per touch gesture (reset on press); wheels need a pause of about 180ms between flicks so trackpad inertia does not double-step. Past the last stop, glide to the next section's top; before the first, above the section. Enable on the ScrollTrigger's onToggle and onRefresh, never leave it on outside the section (it blocks taps). Settle arrivals on the edge stop only after a frame and only if still active, or menu-link jumps get pulled back into the section. Keep a snap as a fallback for keyboard and scrollbar, and turn all of it off under reduced motion. Test held swipes with CDP touch events (drag, hold 2s, release) and every menu link.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, section 4 "Scroll"
 - **Status:** ready

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap, ScrollTrigger, prefersReducedMotion, stepSnap } from "@/app/_lib/gsap";
+import { gsap, ScrollTrigger, createStepper, prefersReducedMotion, stepSnap } from "@/app/_lib/gsap";
 import { HERO_BEATS, SHOT_SPECS } from "@/app/_lib/content";
 
 /*
@@ -176,6 +176,8 @@ export function Hero() {
       if (el) el.style.opacity = String(v);
     };
 
+    const HERO_STOPS = [0, 0.36, 0.6, 1];
+    const stepper = createStepper(HERO_STOPS);
     const gctx = gsap.context(() => {
       if (!prefersReducedMotion()) {
         gsap.from(".hero-stagger", { opacity: 0, y: 34, duration: 1, stagger: 0.12, delay: 0.2, ease: "power3.out" });
@@ -187,8 +189,9 @@ export function Hero() {
         scrub: 0.4,
         pin: pinRef.current,
         anticipatePin: 1,
-        // One swipe plays the footage through to the next copy block.
-        snap: stepSnap([0, 0.36, 0.6, 1]),
+        // One swipe plays the footage through to the next copy block, automatically.
+        snap: stepSnap(HERO_STOPS),
+        ...stepper.callbacks,
         onUpdate: (self) => {
           const t = self.progress;
           const i = Math.round(t * (total - 1));
@@ -216,6 +219,7 @@ export function Hero() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", measure);
       if (raf) cancelAnimationFrame(raf);
+      stepper.kill();
       gctx.revert();
       frames.forEach((f) => f?.close());
     };

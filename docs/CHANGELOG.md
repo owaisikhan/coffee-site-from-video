@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-25: fully automatic steps
+- Owner: "make it fully automatic even while finger is down".
+- Pinned sections now take over scrolling with GSAP Observer (`createStepper()` in `app/_lib/gsap.js`): inside the hero, brew and origins, native scroll is blocked and each swipe or wheel flick starts an automatic glide to the next stop, with the finger still down. One step per touch; a wheel needs a short pause between flicks so trackpad inertia does not double-step. Past the last stop a swipe carries the reader to the next section's top; before the first stop, back above the section.
+- Arriving by normal scrolling settles on the edge stop. That settle is checked a frame later, so menu links that jump across the page are not pulled back into a pinned section.
+- `stepSnap` stays as a fallback for keyboard and scrollbar scrolling. Both are off under reduced motion.
+
 ## 2026-09-25: one swipe, one step
 - Owner: slow scrolling on a phone made the video look laggy, a continuous scroll looked smooth; asked for one scroll to play through to the next section.
 - The three pinned sections now step-snap (`stepSnap()` in `app/_lib/gsap.js`): any scroll, even a few pixels, glides at an even pace to the next stop in that direction. Hero stops at each copy block (0, 0.36, 0.6, 1), brew at each caption, origins at each card. Scrolling up steps back.

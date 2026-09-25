@@ -17,7 +17,7 @@ thermometer, a pinned sideways origins strip, and a booking form.
 - Menu items, prices, origins, WhatsApp number, hours and address are PLACEHOLDERS.
   They live in `app/_lib/content.js` and `app/_lib/siteConfig.js` and nowhere else.
 - Hero performance: frames load coarse to fine and the nearest loaded frame is drawn once per refresh. Keep per-scroll work to transforms, opacity and textContent; no left/top, no blend modes in the pinned hero.
-- Pinned sections step-snap: one swipe plays to the next stop (`stepSnap` in `app/_lib/gsap.js`). The owner asked for this because slow thumb scrolling made the video look laggy.
+- Pinned sections take over scrolling: each swipe plays automatically to the next stop, even with the finger down (`createStepper` plus `stepSnap` fallback in `app/_lib/gsap.js`). The owner asked for this because slow thumb scrolling made the video look laggy.
 - Leads go to WhatsApp (`whatsappLink()` in siteConfig). There is no backend and no database.
 - Palette exceptions: none. The warm dark theme is chosen from the footage (shot on black with amber light), not a reflex.
 - No em or en dashes anywhere, including copy, comments and docs.

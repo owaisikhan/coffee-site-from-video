@@ -35,7 +35,9 @@
 | Origins | pin, distance = track overflow, scrub 0.6, step snap per card | cards travel sideways |
 | Story, Visit | `top 85%` | head and cards rise in |
 
-## Step snapping
-Pinned, scroll-driven sections use `stepSnap(stops)` from `app/_lib/gsap.js`: one swipe moves to the next stop and the
-media plays through at an even pace. Always include 0 and 1 in the stops so the reader can leave the section. Do not
-snap ordinary content sections; they hold forms and are taller than a phone screen.
+## Stepped sections
+Pinned, scroll-driven sections use `createStepper(stops)` (full takeover: each swipe or wheel flick glides to the next
+stop automatically, even with the finger down) plus `snap: stepSnap(stops)` as a fallback for keyboard and scrollbar.
+Always include 0 and 1 in the stops so the reader can leave the section. Spread `stepper.callbacks` into the
+ScrollTrigger config and call `stepper.kill()` on cleanup. Do not step ordinary content sections; they hold forms and
+are taller than a phone screen.

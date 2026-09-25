@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, stepSnap } from "@/app/_lib/gsap";
+import { createStepper, gsap, stepSnap } from "@/app/_lib/gsap";
 import { BREW_STAGES } from "@/app/_lib/content";
 
 /*
@@ -20,6 +20,8 @@ export function Brew() {
   const stages = useRef([]);
 
   useEffect(() => {
+    const BREW_STOPS = [0, 0.2, 0.52, 0.88, 1];
+    const stepper = createStepper(BREW_STOPS);
     const ctx = gsap.context(() => {
       const state = { t: 0 };
       const tl = gsap.timeline({
@@ -31,7 +33,8 @@ export function Brew() {
           pin: pinRef.current,
           anticipatePin: 1,
           // One swipe per caption: resting, bloom, peak.
-          snap: stepSnap([0, 0.2, 0.52, 0.88, 1]),
+          snap: stepSnap(BREW_STOPS),
+          ...stepper.callbacks,
         },
         defaults: { ease: "none" },
       });
@@ -66,7 +69,10 @@ export function Brew() {
         .to(stages.current[1], { opacity: 0, y: -30, duration: 0.12, ease: "power2.in" }, 0.62)
         .from(stages.current[2], { opacity: 0, y: 30, duration: 0.15, ease: "power2.out" }, 0.68);
     }, triggerRef);
-    return () => ctx.revert();
+    return () => {
+      stepper.kill();
+      ctx.revert();
+    };
   }, []);
 
   return (
