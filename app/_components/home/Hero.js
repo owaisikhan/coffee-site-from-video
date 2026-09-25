@@ -6,9 +6,9 @@ import { HERO_BEATS, SHOT_SPECS } from "@/app/_lib/content";
 
 /*
  * Pinned hero: 600% of scroll scrubs the owner's pour video as a WebP frame
- * sequence on a canvas (200 frames desktop, 100 phones). The footage is
- * portrait (478x850), so phones fill the screen and desktops get a sharp
- * viewfinder panel on the right over a blurred, darkened copy of the frame.
+ * sequence on a canvas, filling the screen. Phones load 100 portrait frames;
+ * desktops load 200 frames cut to the middle 16:9 band of the portrait
+ * footage and upscaled to 1920x1080 (see scripts/make-frames.mjs).
  * Every HUD readout and copy block follows the same scroll progress.
  */
 
@@ -50,11 +50,6 @@ export function Hero() {
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    // A tiny offscreen canvas scaled back up gives a cheap, even blur in every browser.
-    const tiny = document.createElement("canvas");
-    tiny.width = 27;
-    tiny.height = 48;
-    const tinyCtx = tiny.getContext("2d");
 
     const frames = Array(total).fill(null);
     const loading = new Set();
@@ -62,35 +57,16 @@ export function Hero() {
     let wanted = -1;
     let anyLoaded = false;
 
+    // Cover-fit on every screen: phones get the portrait frames, desktops a 16:9 crop.
     const paint = (img) => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      ctx.clearRect(0, 0, w, h);
-      const cover = Math.max(w / img.width, h / img.height);
-      if (w < 768) {
-        const dw = img.width * cover;
-        const dh = img.height * cover;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-        return;
-      }
-      // Ambient background.
-      tinyCtx.drawImage(img, 0, 0, tiny.width, tiny.height);
-      const bw = tiny.width * Math.max(w / tiny.width, h / tiny.height);
-      const bh = tiny.height * Math.max(w / tiny.width, h / tiny.height);
+      const s = Math.max(w / img.width, h / img.height);
+      const dw = img.width * s;
+      const dh = img.height * s;
       ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(tiny, (w - bw) / 2, (h - bh) / 2, bw, bh);
-      ctx.fillStyle = "rgba(14,10,8,0.62)";
-      ctx.fillRect(0, 0, w, h);
-      // Sharp viewfinder panel, full height, centred right of middle.
-      const ph = h;
-      const pw = (img.width / img.height) * ph;
-      const cx = w * (w < 1200 ? 0.72 : 0.66);
-      const px = Math.min(w - pw - 24, cx - pw / 2);
-      ctx.drawImage(img, px, 0, pw, ph);
-      ctx.strokeStyle = "rgba(243,233,220,0.14)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(px + 0.5, -1, pw - 1, ph + 2);
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
     };
 
     const draw = (i) => {
@@ -299,7 +275,7 @@ export function Hero() {
 
           <div className="hud-ticks absolute right-5 top-1/2 hidden h-56 w-3 -translate-y-1/2 opacity-80 md:block" />
 
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:left-[72%] xl:left-[66%]">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:left-[66%]">
             <div className="relative h-44 w-44 md:h-64 md:w-64">
               <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/12" />
               <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/12" />

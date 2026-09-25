@@ -18,8 +18,9 @@ for the rules.
 |---|---|---|---|---|---|
 | L-001 | 2026-09-25 | rule | Always push finished work to `main` | all | ready (also burger-king L-001) |
 | L-002 | 2026-09-25 | gap | A site can be built from the owner's own video: frames, stills and a loop all come from one file | type: 3d-website | logged |
-| L-003 | 2026-09-25 | gotcha | Portrait footage on desktop: viewfinder panel over a tiny-canvas blur, not a stretched cover | type: 3d-website | logged |
+| L-003 | 2026-09-25 | gotcha | Portrait footage on desktop: viewfinder panel over a tiny-canvas blur, not a stretched cover | type: 3d-website | superseded by L-005 |
 | L-004 | 2026-09-25 | gotcha | GSAP `from()` on an element already at opacity 0 tweens 0 to 0 | all | logged |
+| L-005 | 2026-09-25 | reversal | Scroll-video heroes fill the screen on desktop too; crop portrait footage to follow the subject | type: 3d-website | ready |
 
 ## Entries
 
@@ -45,7 +46,7 @@ for the rules.
 - **Lesson:** For portrait footage on desktop, draw the frame contained at full height in a panel right of centre and fill the rest with the same frame drawn into a 27x48 offscreen canvas and scaled up (a cheap blur that works in every browser), darkened. Phones keep the full-bleed cover.
 - **Scope:** type: 3d-website
 - **Target in skill:** references/types/3d-website.md, section 7 "Phones" or a new "Aspect ratio" note
-- **Status:** logged
+- **Status:** superseded by L-005
 
 ### L-004 · 2026-09-25 · medium · gotcha
 - **Said / saw:** the cloned burger site's pinned sear captions 2 and 3 start at inline opacity 0 and use `tl.from({ opacity: 0 })`
@@ -54,3 +55,11 @@ for the rules.
 - **Scope:** all
 - **Target in skill:** references/types/3d-website.md, "Gotchas"
 - **Status:** logged
+
+### L-005 · 2026-09-25 · strong · reversal
+- **Said / saw:** "the site looks good on mobile but on desktop buts odd, check the image can u make it fill the screen" (screenshot of the viewfinder panel at 2000x920)
+- **Context:** Kodexa House hero, portrait 478x850 footage; replaced the L-003 panel the same day
+- **Lesson:** A scroll-video hero fills the whole screen on every device, even when the footage is portrait; the owner reads a framed panel as broken. Bake a desktop set at build time: crop a 16:9 band, upscale to 1920x1080 with lanczos plus a light unsharp (softer but reads as cinematic under the HUD, about 34 KB per frame), and move the band with a per-shot focus list so the subject stays in view. Check the result at a wide 2.17:1 screen, where only about a quarter of the portrait height is visible.
+- **Scope:** type: 3d-website
+- **Target in skill:** references/types/3d-website.md, section 7 "Phones" or a new "Aspect ratio of the footage" section
+- **Status:** ready
